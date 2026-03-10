@@ -25,3 +25,7 @@ Location of the actual AADR dataset:
 
 https://dataverse.harvard.edu/dataverse/reich_lab
 
+Source for mitochondrial clocks:
+
+https://pmc.ncbi.nlm.nih.gov/articles/PMC2694979/#app1
+

@@ -27,16 +27,61 @@ with open("/home/inf-48-2025/BINP29/PopGenProj/Resources/Data/AADR_54.1/Modern_s
         newDNA.append(line[1])
         
 # %%
-oldHapGroups = {}
-newHapGroups = {}
-noncategorized = 0
+oldPeople = []
+modernPeople = []
 for index, item in enumerate(df['Genetic ID'], start=0):
     item = str(item).strip().lower()
     if item in oldDNA:
-        hapgroup = df.at[index, 'mtDNA haplogroup if >2x or published']
-        oldHapGroups.update({item:hapgroup})
+        oldPeople.append(index)
     elif item in newDNA:
-        hapgroup = df.at[index, 'mtDNA haplogroup if >2x or published']
-        newHapGroups.update({item:hapgroup})
+        modernPeople.append(index)
     else:
-        noncategorized = noncategorized+1
+        pass
+        
+# %%
+
+userGroup = 'r2b2'
+parentGroup = userGroup[0]
+
+ancestors = []
+relatives = []
+
+for oldPerson in oldPeople:
+    oldHapGroup = str(df.at[oldPerson, 'mtDNA haplogroup if >2x or published']).lower()
+    if oldHapGroup[0] == parentGroup:
+        ancestors.append(oldPerson)
+
+for modernPerson in modernPeople:
+    newHapGroup = str(df.at[modernPerson, 'mtDNA haplogroup if >2x or published']).lower()
+    if newHapGroup[0] == parentGroup:
+        relatives.append(modernPerson)
+
+
+# %%
+oldestAncestor = ''
+oldestAncestorDate = 0
+oldestAncestorHapGroup = 0
+
+newestAncestor = ''
+newestAncestorDate = 1000000000
+newestAncestorHapGroup = 0
+
+for ancestor in ancestors: 
+    if df.iat[ancestor, 8] > oldestAncestorDate:
+        oldestAncestor = ancestor
+        oldestAncestorDate = df.iat[ancestor, 8]
+        oldestAncestorHapGroup = df.at[ancestor,'mtDNA haplogroup if >2x or published']
+    if df.iat[ancestor, 8] < newestAncestorDate:
+        newestAncestor = ancestor
+        newestAncestorDate = df.iat[ancestor, 8]
+        newestAncestorHapGroup = df.at[ancestor,'mtDNA haplogroup if >2x or published'] 
+     
+if oldestAncestorDate > 1950:
+    print(f"The oldest known member of {userGroup}'s maternal line lived around {(1950-oldestAncestorDate)*-1} BCE in modern-day {df.iat[ancestor, 14]}")
+else:
+    print(f"The oldest known member of {userGroup}'s maternal line lived around {1950-oldestAncestorDate} CE in modern-day {df.iat[ancestor, 14]}")
+ 
+if newestAncestorDate > 1950:
+    print(f"The most recent known member of {userGroup}'s maternal line lived around {(1950-newestAncestorDate)*-1} BCE in modern-day {df.iat[ancestor, 14]}")
+else:
+    print(f"The most recent known member of {userGroup}'s maternal line lived around {1950-newestAncestorDate} CE in modern-day {df.iat[ancestor, 14]}")
