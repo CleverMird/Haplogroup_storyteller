@@ -2,7 +2,21 @@ Software usage:
 Python 3.14.3
 openpyxl 3.1.5
 pandas 3.0.1 
+plotly 6.6.0
+narwhals 2.18.0
 
+
+arpack 3.9.1
+glpk 5.0
+gmp 6.3.0
+igraph 1.0.1
+libgcc-ng 15.2.0
+libiconv 1.18
+libstdcxx-ng 15.2.0
+libxml2 2.15.2
+libxml2-16 2.15.2
+libxml2-devel 2.15.2
+igraph 1.0.1 
 
 plotly and folio - interactive plots
 
