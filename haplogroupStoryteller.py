@@ -97,61 +97,60 @@ for modernPerson in modernPeople:
         relatives.append(modernPerson)
 
 # %%
-# oldestAncestor = ''
-# oldestAncestorDate = 0
-# oldestAncestorHapGroup = 0
-
-# newestAncestor = ''
-# newestAncestorDate = 1000000000
-# newestAncestorHapGroup = 0
-
-# for ancestor in ancestors: 
-#     if df.iat[ancestor, 8] > oldestAncestorDate:
-#         oldestAncestor = ancestor
-#         oldestAncestorDate = df.iat[ancestor, 8]
-#         oldestAncestorHapGroup = df.at[ancestor,'mtDNA haplogroup if >2x or published']
-        
-# if oldestAncestorDate > 1950:
-#     print(f"The oldest known member of the {userGroup} line lived around {(1950-oldestAncestorDate)*-1} BCE in modern-day {df.iat[oldestAncestor, 14]}")
-# else:
-#     print(f"The oldest known member of the {userGroup} line lived around {1950-oldestAncestorDate} CE in modern-day {df.iat[oldestAncestor, 14]}")
-
-# %%
 #whittle down possible ancestors list 
 
 for index, letter in enumerate(str(userGroup), start=0):
-    print(index, letter)
-    print(len(ancestors))
     newAncestors = []
     for ancestor in ancestors:
         ancestorGroup = df.at[ancestor, 'mtDNA haplogroup if >2x or published']
         if len(ancestorGroup) <= index or len(ancestorGroup) > index and ancestorGroup[index].lower() == letter:
                 newAncestors.append(ancestor)
-    print(f"the length of the new group is {len(newAncestors)}")
     if len(newAncestors) != 0:
         ancestors = newAncestors
     else:
         break
 newAncestors = []    
-for index, ancestor in enumerate(ancestors):
+for ancestor in ancestors:
     ancestorGroup = df.at[ancestor, 'mtDNA haplogroup if >2x or published']
     if len(ancestorGroup) <= len(userGroup):
-        print(ancestorGroup)
         newAncestors.append(ancestor)
 ancestors = newAncestors
-    
-    
-# if df.iat[ancestor, 8] < newestAncestorDate:
-#     newestAncestor = ancestor
-#     newestAncestorDate = df.iat[ancestor, 8]
-#     newestAncestorHapGroup = df.at[ancestor,'mtDNA haplogroup if >2x or published'] 
+
+# %%
+#now we have only the ancient DNA that is the same group as our user, or from the same tree and not differentiated further and we 
+#can look for the oldest and newest members of this group
+
+oldestAncestor = ''
+oldestAncestorDate = 0
+oldestAncestorHapGroup = 0
+
+newestAncestor = ''
+newestAncestorDate = 1000000000
+newestAncestorHapGroup = 0
+
+for ancestor in ancestors: 
+    if df.iat[ancestor, 8] > oldestAncestorDate:
+        oldestAncestor = ancestor
+        oldestAncestorDate = df.iat[ancestor, 8]
+        oldestAncestorHapGroup = df.at[ancestor,'mtDNA haplogroup if >2x or published']
+        
+if oldestAncestorDate > 1950:
+    print(f"The oldest known member of the {userGroup} line lived around {(1950-oldestAncestorDate)*-1} BCE in modern-day {df.iat[oldestAncestor, 14]}")
+else:
+    print(f"The oldest known member of the {userGroup} line lived around {1950-oldestAncestorDate} CE in modern-day {df.iat[oldestAncestor, 14]}")
+
+
      
-
-
-# if newestAncestorDate > 1950:
-#     print(f"The most recent member of the {userGroup} line in the AADR database lived around {(1950-newestAncestorDate)*-1} BCE in modern-day {df.iat[newestAncestor, 14]}")
-# else:
-#     print(f"The most recent member of the {userGroup} line in the AADR database lived around {1950-newestAncestorDate} CE in modern-day {df.iat[newestAncestor, 14]}")
+if df.iat[ancestor, 8] < newestAncestorDate:
+    newestAncestor = ancestor
+    newestAncestorDate = df.iat[ancestor, 8]
+    newestAncestorHapGroup = df.at[ancestor,'mtDNA haplogroup if >2x or published'] 
+     
+    
+if newestAncestorDate > 1950:
+    print(f"The most recent member of the {userGroup} line in the AADR database lived around {(1950-newestAncestorDate)*-1} BCE in modern-day {df.iat[newestAncestor, 14]}")
+else:
+    print(f"The most recent member of the {userGroup} line in the AADR database lived around {1950-newestAncestorDate} CE in modern-day {df.iat[newestAncestor, 14]}")
 
 # %%
 #find info on relatives
