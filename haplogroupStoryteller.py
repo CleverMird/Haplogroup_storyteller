@@ -7,8 +7,12 @@ Created on Tue Mar 10 09:08:13 2026
 """
 
 import pandas as pd
+from collections import Counter
 
-df = pd.read_excel('/home/inf-48-2025/BINP29/PopGenProj/Resources/Data/AADR_54.1/AADR_Annotations_2025.xlsx')
+mainDF = pd.read_excel('/home/inf-48-2025/BINP29/PopGenProj/Resources/Data/AADR_54.1/AADR_Annotations_2025.xlsx')
+
+df = mainDF[['Genetic ID', 'Date mean in BP in years before 1950 CE [OxCal mu for a direct radiocarbon date, and average of range for a contextual date]', 'Political Entity',
+            'mtDNA haplogroup if >2x or published']].copy()
 # %%
 #read our list of old and new DNA from the input files
 
@@ -111,7 +115,7 @@ for index, letter in enumerate(str(userGroup), start=0):
         break
 newAncestors = []    
 for ancestor in ancestors:
-    ancestorGroup = df.at[ancestor, 'mtDNA haplogroup if >2x or published']
+    ancestorGroup = str(df.at[ancestor, 'mtDNA haplogroup if >2x or published']).strip()
     if len(ancestorGroup) <= len(userGroup):
         newAncestors.append(ancestor)
 ancestors = newAncestors
@@ -129,40 +133,62 @@ newestAncestorDate = 1000000000
 newestAncestorHapGroup = 0
 
 for ancestor in ancestors: 
-    if df.iat[ancestor, 8] > oldestAncestorDate:
+    if df.iat[ancestor, 1] > oldestAncestorDate:
         oldestAncestor = ancestor
-        oldestAncestorDate = df.iat[ancestor, 8]
+        oldestAncestorDate = df.iat[ancestor, 1]
         oldestAncestorHapGroup = df.at[ancestor,'mtDNA haplogroup if >2x or published']
+    if df.iat[ancestor, 1] < newestAncestorDate:
+        newestAncestor = ancestor
+        newestAncestorDate = df.iat[ancestor, 1]
+        newestAncestorHapGroup = df.at[ancestor,'mtDNA haplogroup if >2x or published'] 
         
 if oldestAncestorDate > 1950:
-    print(f"The oldest known member of the {userGroup} line lived around {(1950-oldestAncestorDate)*-1} BCE in modern-day {df.iat[oldestAncestor, 14]}")
+    print(f"The oldest known member of the {userGroup} line lived around {(1950-oldestAncestorDate)*-1} BCE in modern-day {df.iat[oldestAncestor, 2]}")
 else:
-    print(f"The oldest known member of the {userGroup} line lived around {1950-oldestAncestorDate} CE in modern-day {df.iat[oldestAncestor, 14]}")
-
-
-     
-if df.iat[ancestor, 8] < newestAncestorDate:
-    newestAncestor = ancestor
-    newestAncestorDate = df.iat[ancestor, 8]
-    newestAncestorHapGroup = df.at[ancestor,'mtDNA haplogroup if >2x or published'] 
-     
+    print(f"The oldest known member of the {userGroup} line lived around {1950-oldestAncestorDate} CE in modern-day {df.iat[oldestAncestor, 2]}")
+  
     
 if newestAncestorDate > 1950:
-    print(f"The most recent member of the {userGroup} line in the AADR database lived around {(1950-newestAncestorDate)*-1} BCE in modern-day {df.iat[newestAncestor, 14]}")
+    print(f"The most recent member of the {userGroup} line in the AADR database lived around {(1950-newestAncestorDate)*-1} BCE in modern-day {df.iat[newestAncestor, 2]}")
 else:
-    print(f"The most recent member of the {userGroup} line in the AADR database lived around {1950-newestAncestorDate} CE in modern-day {df.iat[newestAncestor, 14]}")
+    print(f"The most recent member of the {userGroup} line in the AADR database lived around {1950-newestAncestorDate} CE in modern-day {df.iat[newestAncestor, 2]}")
+
+# %%
+#whittle down possible relatives list 
+
+# for index, letter in enumerate(str(userGroup), start=0):
+#     newRelatives = []
+#     for relative in relatives:
+#         relativeGroup = str(df.at[relative, 'mtDNA haplogroup if >2x or published'])
+#         if len(relativeGroup) <= index or len(relativeGroup) > index and relativeGroup[index].lower() == letter:
+#                 newRelatives.append(relative)
+#     if len(newRelatives) != 0:
+#         relatives = newRelatives
+#     else:
+#         break
+# newRelatives = []    
+# for relative in relatives:
+#     relativeGroup = str(df.at[relative, 'mtDNA haplogroup if >2x or published']).strip()
+#     if len(relativeGroup) <= len(userGroup):
+#         newRelatives.append(relative)
+# relatives = newRelatives
 
 # %%
 #find info on relatives
-relativeOrigins = set()
+relativeOrigins = []
 
 for relative in relatives: 
-    relativeOrigins.add(df.iat[relative, 14])
+    relativeOrigins.append(str(df.iat[relative, 2]).strip())
     
-if len(relativeOrigins) > 0:
-    print(f"{len(relatives)} other modern members of the {userGroup} lineage have submitted their DNA to AADR, tracing their origins to the following countries:")
-    print(relativeOrigins)
+groupCounts = Counter(relativeOrigins)
+    
+if len(relativeOrigins) == 0:
+    print(f"No other modern members of the {mainLineage.upper()} lineage have submitted their DNA to AADR")
     
 else: 
-    print(f"No other modern members of the {userGroup} lineage have submitted their DNA to AADR")
+    print(f"{len(relatives)} other modern members of the {mainLineage.upper()} lineage have submitted their DNA to AADR, tracing their origins to the following countries:")
+    for country in groupCounts.keys():
+        print(f"{country}: {groupCounts[country]}")
     
+
+
