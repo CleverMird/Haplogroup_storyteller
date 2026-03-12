@@ -1,63 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Mar 11 12:12:30 2026
+Created on Thu Mar 12 14:46:29 2026
 
 @author: inf-48-2025
 """
-#import networkx as nx
-#import matplotlib.pyplot as plt
-#import numpy as np
 
-# %%
-# seed = 6
-
-# np.random.seed(seed)
-# usergroup = "U2c1"
-
-# nodes = []
-# edges = []
-# terminal_nodes = []
-# layers = range(1,(len(usergroup)))
-# G = nx.DiGraph()
-
-# # for i in layers:
-# #     nodes.append(i)
-
-# for index, letter in enumerate(usergroup):
-#     nodes.append(usergroup[0:index+1])
-#     if index > 0:
-#         #edges.append((index, usergroup[0:index+1]))
-#         edges.append((usergroup[0:index], usergroup[0:index+1]))
-
-        
-# root_node = usergroup
-
-    
-
-# G.add_nodes_from(nodes)   
-# G.add_edges_from(edges)
+from dash import Dash, html, dcc
 
 
+app = Dash()
 
-# %%
-   
-
-# plt.figure(figsize=(8, 6))
-# pos = nx.spring_layout(G)
-# pos[root_node] = (-2,(1/len(layers)))
-# #write_dot(G,'test.dot')
-# nx.draw(G, pos, with_labels=True, node_size=3000, node_color='skyblue', font_size=10, font_weight='bold', edge_color='gray')
-# plt.gca().invert_yaxis()
-# plt.title('Pedigree Analysis Chart')
-# plt.show()
-
-# %%
-
-import igraph
-from igraph import Graph, EdgeSeq
+from igraph import Graph
 import plotly.graph_objects as go
-from plotly.offline import plot
 
 usergroup = "U2c"
 layers = len(usergroup)
@@ -117,7 +72,7 @@ axis = dict(showline=False, # hide axis line, grid, ticklabels and  title
             showticklabels=False,
             )
 
-fig.update_layout(title= 'Tree with Reingold-Tilford Layout',
+fig.update_layout(title= f'The lineage of {usergroup}',
               font_size=12,
               showlegend=False,
               xaxis=axis,
@@ -127,4 +82,26 @@ fig.update_layout(title= 'Tree with Reingold-Tilford Layout',
               plot_bgcolor='rgb(248,248,248)'
               )
 
-plot(fig, auto_open=True)
+colors = {
+    'background': '#ABCDD9',
+    'text': '#F7FCFF'
+}
+app.layout = html.Div(style={'backgroundColor': colors['background']}, children=[
+    html.H1(children='Your Haplogroup Story',
+            style={
+            'textAlign': 'center',
+            'color': colors['text']
+        }),
+
+    html.Div(children='''
+        Dash: A web application framework for your data.
+    '''),
+
+    dcc.Graph(
+        id='example-graph',
+        figure=fig
+    )
+])
+
+if __name__ == '__main__':
+    app.run(debug=True)
