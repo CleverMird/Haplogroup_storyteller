@@ -61,8 +61,8 @@ def haplogroup_storyteller(userGroup):
     #print important info
     firstSplit = int(firstSplit)
     latestSplit = int(latestSplit)
-    return_text = return_text+f"The {mainLineage} lineage is estimated to have diverged from the rest of humanity around {firstSplit-2000} BCE."
-    return_text = return_text + "  "
+    return_text = return_text+f"<p>The {mainLineage} lineage is estimated to have diverged from the rest of humanity around {firstSplit-2000} BCE.<br>"
+    #return_text = return_text + "\\"
     if upTheTree == True:
         return_text= return_text+"Our database has no information on dates for futher divergances of the line."
     else:    
@@ -78,7 +78,8 @@ app.layout = html.Div([
 
     html.Button('click me', id='button'),
 
-    html.Div(id='output')
+    html.Div(dcc.Markdown(id='output', style={"display": 'flex','textAlign': 'center', 'vertical-align': 'top',
+    'color': '#292929', 'justify-content': 'center', 'background-color':'#F0F0F0', 'padding': 10, 'flex': 1}))
 ])
 
 @app.callback(
@@ -88,8 +89,7 @@ app.layout = html.Div([
 
 def update_output_div(n_clicks, input_value):
     display_text = haplogroup_storyteller(input_value)
-    return(html.Div(children=[dcc.Markdown(display_text, style={"display": 'flex','textAlign': 'center', 'vertical-align': 'top',
-    'color': '#292929', 'justify-content': 'center', 'background-color':'#F0F0F0', 'padding': 10, 'flex': 1})]))
+    return(display_text)
 
 
 

@@ -32,13 +32,13 @@ with open("/home/inf-48-2025/BINP29/PopGenProj/Resources/Data/AADR_54.1/Modern_s
         newDNA.append(line[1])
         
 def haplogroup_storyteller(userGroup): 
-    return_text= ''
-    nl = '\n'
+    return_text= []
+    
     userTrunc = userGroup
     
     upTheTree = False
 
-    mainLineage = userGroup[0]
+    mainLineage = userGroup[0].lower()
 
     firstSplit = ancestDates.get(mainLineage, "ERROR")
 
@@ -50,20 +50,19 @@ def haplogroup_storyteller(userGroup):
             userTrunc = userTrunc[:-1]
             latestSplit = ancestDates.get(userTrunc, "ERROR")
         if len(userTrunc) == 1 and latestSplit == "ERROR":
-            print("This lineage is not in our database, please check spelling and try again.")
-            quit()
+            return_text.append("This lineage is not in our database, please check spelling and try again.")
+            return(return_text)
         elif len(userTrunc) == 1:
             upTheTree = True
 
     #print important info
     firstSplit = int(firstSplit)
     latestSplit = int(latestSplit)
-    return_text = return_text+f"The {mainLineage} lineage is estimated to have diverged from the rest of humanity around {firstSplit-2000} BCE."
-    return_text = return_text + "  "
+    return_text.append(f"The {mainLineage} lineage is estimated to have diverged from the rest of humanity around {firstSplit-2000} BCE.")
     if upTheTree == True:
-        return_text= return_text+"Our database has no information on dates for futher divergances of the line."
+        return_text.append("Our database has no information on dates for futher divergances of the line.")
     else:    
-        return_text= return_text+f"\nThe most recent common ancestor for the {userTrunc} maternal line is estimated to have lived around {latestSplit-2000} BCE"
+        return_text.append(f"The most recent common ancestor for the {userTrunc} maternal line is estimated to have lived around {latestSplit-2000} BCE")
     return(return_text)
 
 app = Dash()
@@ -166,7 +165,7 @@ fig.update_layout(annotations=annotations,
 fig.update_yaxes(autorange="reversed")
 
 app.layout = html.Div(children=[
-    html.H1(children='Your Haplogroup Story',style={'textAlign': 'center','color': colors['text'],'font-size': 65}), 
+    html.H1(children='Your Haplogroup Story',style={'textAlign': 'center','color': colors['background'],'font-size': 65}), 
     
     dcc.Input(id='input1'),
     
@@ -174,9 +173,9 @@ app.layout = html.Div(children=[
 
    html.Div(#style={'backgroundColor': colors['background'], 'display': 'flex', 'flexDirection': 'column'}, 
             children=[
-       html.Div(style={'display': 'flex', 'flexDirection': 'row'}, children=[   
-           html.Div(id='output', style={"display": 'flex','textAlign': 'center', 'vertical-align': 'top',
-                                        'color': '#292929', 'justify-content': 'center', 'background-color':'#F0F0F0', 'padding': 10, 'flex': 1}),
+       html.Div(style={'display': 'flex', 'flexDirection': 'row', 'vertical-align': 'top'}, children=[   
+           html.Div(id='output', style={"display": 'flex','flexDirection':'column','textAlign': 'center', 'vertical-align': 'top',
+                                        'color': '#292929', 'justify-content': 'center', 'padding': 10, 'flex': 1}),
 
            html.Div(children=[dcc.Graph(id='example-graph', figure=fig, style={"display": 'flex','color':colors['background'], 'padding': 10, 'flex': 1}, 
            ), ])          
@@ -188,8 +187,15 @@ app.layout = html.Div(children=[
     State('input1', 'value'))
 
 def update_output_div(n_clicks, input_value):
+    input_value = input_value.lower()
     display_text = haplogroup_storyteller(input_value)
-    return(display_text)
+    returntext = []
+    for statement in display_text:
+        #statement = f"{statement}<br>"
+        returntext.append(dcc.Markdown(statement, style={"display":"flex", "flexDirection":"column", 'vertical-align': 'top', 'background-color':'#F0F0F0',
+                                                         'border-radius': '25px', 'border-style':'solid', 'border-color': 'black', 'padding':'10',
+                                                         'marginBottom': '1.5em'}))
+    return(returntext)
 
 
 if __name__ == '__main__':

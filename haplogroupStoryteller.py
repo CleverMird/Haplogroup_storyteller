@@ -5,17 +5,24 @@ Created on Tue Mar 10 09:08:13 2026
 
 @author: inf-48-2025
 """
+# %%
+#import needed modules and set up our data
 
+#import needed modules
 import pandas as pd
 from collections import Counter
 
-mainDF = pd.read_excel('/home/inf-48-2025/BINP29/PopGenProj/Resources/Data/AADR_54.1/AADR_Annotations_2025.xlsx')
+#read the AADR dataset 
+mainDF = pd.read_excel('/home/inf-48-2025/BINP29/PopGenProj/Resources/Data/AADR_54.1/v62.0_1240k_public.xlsx')
 
-df = mainDF[['Genetic ID', 'Date mean in BP in years before 1950 CE [OxCal mu for a direct radiocarbon date, and average of range for a contextual date]', 'Political Entity',
-            'mtDNA haplogroup if >2x or published']].copy()
+#extract just the relevant sections of the AADR dataset for more efficient searching down the line
+
+            
+df = pd.concat([mainDF.iloc[:, 0] , mainDF.iloc[:, 9], mainDF.iloc[:, 15], mainDF.iloc[:, 31], mainDF.iloc[:, 24]], axis=1)
 # %%
 #read our list of old and new DNA from the input files
 
+#read in our list of estimated mtHaplogroup divergance dates
 with open("/home/inf-48-2025/BINP29/PopGenProj/lineageDates.txt") as mtClock:
     lines = mtClock.readlines()
     ancestDates = {}
@@ -23,13 +30,15 @@ with open("/home/inf-48-2025/BINP29/PopGenProj/lineageDates.txt") as mtClock:
         line = line.split('\t')
         ancestDates.update({line[0].strip().lower():line[1].strip()})
 
+#read in our list of anchient DNA samples
 with open("/home/inf-48-2025/BINP29/PopGenProj/Resources/Data/AADR_54.1/Ancient_samples.txt") as oldList:
     lines = oldList.readlines()
     oldDNA = []
     for line in lines:
         line = line.lower().split()
         oldDNA.append(line[1])
-    
+
+#read in our list of modern DNA samples    
 with open("/home/inf-48-2025/BINP29/PopGenProj/Resources/Data/AADR_54.1/Modern_samples.txt") as newList:
     lines = newList.readlines()
     newDNA = []
@@ -39,18 +48,21 @@ with open("/home/inf-48-2025/BINP29/PopGenProj/Resources/Data/AADR_54.1/Modern_s
         
 # %%
 #set user group and search out mtDNA clock info 
-userGroup = 'u2'
+
+#set user group
+userGroup = 'm9a2c'
+userGroupPrint = userGroup[0].upper()+userGroup[1:].lower() #a properly formatted one for output printing
 
 #possible truncations in case full data isn't availible
 userTrunc = userGroup
 upTheTree = False
+mainLineage = userGroup[0].lower()
 
-mainLineage = userGroup[0]
-
+#find the date our 'core' lineage split from the rest of humanity
 firstSplit = ancestDates.get(mainLineage, "ERROR")
 
+#find the latest divergence point present in our estimation data 
 latestSplit = ancestDates.get(userTrunc, "ERROR")
-
 #if no data, go back until we find data
 if firstSplit == "ERROR" or latestSplit == "ERROR":
     while len(userTrunc) >= 1 and latestSplit == "ERROR":
@@ -58,17 +70,17 @@ if firstSplit == "ERROR" or latestSplit == "ERROR":
         latestSplit = ancestDates.get(userTrunc, "ERROR")
     if len(userTrunc) == 1 and latestSplit == "ERROR":
         print("This lineage is not in our database, please check spelling and try again.")
-        quit()
     elif len(userTrunc) == 1:
         upTheTree = True
 
 #print important info
 firstSplit = int(firstSplit)
 latestSplit = int(latestSplit)
-print(f"The {mainLineage} lineage is estimated to have diverged from the rest of humanity around {firstSplit-2000} BCE")
+print(f"The {mainLineage.upper()} lineage is estimated to have diverged from the rest of humanity around {firstSplit-2000} BCE")
 if upTheTree == True:
     print("Our database has no information on dates for futher divergances of the line.")
 else:    
+    userTrunc = userTrunc[0].upper() + userTrunc[1:]
     print(f"The most recent common ancestor for the {userTrunc} maternal line is estimated to have lived around {latestSplit-2000} BCE")
         
 # %%
@@ -76,6 +88,7 @@ else:
 modernPeople = []
 oldPeople = []
 
+#run through the database and compile a list of the index values for our anchient and modern DNA sets
 for index, item in enumerate(df['Genetic ID'], start=0):
     item = str(item).strip().lower()
     if item in newDNA:
@@ -90,6 +103,7 @@ for index, item in enumerate(df['Genetic ID'], start=0):
 ancestors = []
 relatives = []
 
+#iterate through the anchient and modern DNA sets and find all members of the core lineages
 for oldPerson in oldPeople:
     oldHapGroup = str(df.at[oldPerson, 'mtDNA haplogroup if >2x or published']).lower()
     if oldHapGroup[0] == mainLineage:
@@ -103,16 +117,16 @@ for modernPerson in modernPeople:
 # %%
 #whittle down possible ancestors list 
 
+#remove all members who differentiate into different lineages (example - if the user is U2c, all members of 
+#U, U2, and U2c will be kept, but not U1 or U2a)
 for index, letter in enumerate(str(userGroup), start=0):
     newAncestors = []
     for ancestor in ancestors:
         ancestorGroup = df.at[ancestor, 'mtDNA haplogroup if >2x or published']
         if len(ancestorGroup) <= index or len(ancestorGroup) > index and ancestorGroup[index].lower() == letter:
                 newAncestors.append(ancestor)
-    if len(newAncestors) != 0:
-        ancestors = newAncestors
-    else:
-        break
+
+#run through the ancester group one more time to throw out anything further differentiated than the user-submitted info
 newAncestors = []    
 for ancestor in ancestors:
     ancestorGroup = str(df.at[ancestor, 'mtDNA haplogroup if >2x or published']).strip()
@@ -121,17 +135,19 @@ for ancestor in ancestors:
 ancestors = newAncestors
 
 # %%
-#now we have only the ancient DNA that is the same group as our user, or from the same tree and not differentiated further and we 
+#now we have only the ancient DNA that is the same group as our user (or from the same tree and not differentiated further) and we 
 #can look for the oldest and newest members of this group
 
+#empty variables to store our data
 oldestAncestor = ''
 oldestAncestorDate = 0
 oldestAncestorHapGroup = 0
 
 newestAncestor = ''
-newestAncestorDate = 1000000000
+newestAncestorDate = 1000000000 #unlikely we'll have billion-year old samples, so this choice of starting point is unlikely to leave defaults active
 newestAncestorHapGroup = 0
 
+#run through the ancestors and keep track of the oldest and youngest members of the group
 for ancestor in ancestors: 
     if df.iat[ancestor, 1] > oldestAncestorDate:
         oldestAncestor = ancestor
@@ -141,54 +157,61 @@ for ancestor in ancestors:
         newestAncestor = ancestor
         newestAncestorDate = df.iat[ancestor, 1]
         newestAncestorHapGroup = df.at[ancestor,'mtDNA haplogroup if >2x or published'] 
-        
+
+#check the sex of the oldest and youngest ancestors
+if df.at[oldestAncestor, 'Molecular Sex'].upper() == 'F':
+    oldestAncestorSex = 'female'
+elif df.at[oldestAncestor, 'Molecular Sex'].upper() == 'M':
+    oldestAncestorSex = 'male'
+else: 
+    oldestAncestorSex = 'person of unknown sex'
+
+if df.at[newestAncestor, 'Molecular Sex'].upper() == 'F':
+    newestAncestorSex = 'female'
+elif df.at[newestAncestor, 'Molecular Sex'].upper() == 'M':
+    newestAncestorSex = 'male'
+else: 
+    newestAncestorSex = 'person of unknown sex'
+
+#output information in user-friendly format      
 if oldestAncestorDate > 1950:
-    print(f"The oldest known member of the {userGroup} line lived around {(1950-oldestAncestorDate)*-1} BCE in modern-day {df.iat[oldestAncestor, 2]}")
+    print(f"The oldest known member of the {userGroupPrint} line was a {oldestAncestorSex} who lived around {(1950-oldestAncestorDate)*-1} BCE in modern-day {df.iat[oldestAncestor, 2]}")
 else:
-    print(f"The oldest known member of the {userGroup} line lived around {1950-oldestAncestorDate} CE in modern-day {df.iat[oldestAncestor, 2]}")
+    print(f"The oldest known member of the {userGroupPrint} line a {oldestAncestorSex} who lived around {1950-oldestAncestorDate} CE in modern-day {df.iat[oldestAncestor, 2]}")
   
     
 if newestAncestorDate > 1950:
-    print(f"The most recent member of the {userGroup} line in the AADR database lived around {(1950-newestAncestorDate)*-1} BCE in modern-day {df.iat[newestAncestor, 2]}")
+    print(f"The most recent archeological record of the {userGroupPrint} line in the AADR database was a {newestAncestorSex} who lived around {(1950-newestAncestorDate)*-1} BCE in modern-day {df.iat[newestAncestor, 2]}")
 else:
-    print(f"The most recent member of the {userGroup} line in the AADR database lived around {1950-newestAncestorDate} CE in modern-day {df.iat[newestAncestor, 2]}")
+    print(f"The most recent archeological record of the {userGroupPrint} line in the AADR database was a {newestAncestorSex} who lived around {1950-newestAncestorDate} CE in modern-day {df.iat[newestAncestor, 2]}")
 
-# %%
-#whittle down possible relatives list 
-
-# for index, letter in enumerate(str(userGroup), start=0):
-#     newRelatives = []
-#     for relative in relatives:
-#         relativeGroup = str(df.at[relative, 'mtDNA haplogroup if >2x or published'])
-#         if len(relativeGroup) <= index or len(relativeGroup) > index and relativeGroup[index].lower() == letter:
-#                 newRelatives.append(relative)
-#     if len(newRelatives) != 0:
-#         relatives = newRelatives
-#     else:
-#         break
-# newRelatives = []    
-# for relative in relatives:
-#     relativeGroup = str(df.at[relative, 'mtDNA haplogroup if >2x or published']).strip()
-#     if len(relativeGroup) <= len(userGroup):
-#         newRelatives.append(relative)
-# relatives = newRelatives
 
 # %%
 #find info on relatives
 relativeOrigins = []
 
+#store the origins of all found relatives in a list 
 for relative in relatives: 
     relativeOrigins.append(str(df.iat[relative, 2]).strip())
-    
+
+#use Counter to tally results    
 groupCounts = Counter(relativeOrigins)
-    
+
+#if we don't find any relatives, give a placeholder message     
 if len(relativeOrigins) == 0:
-    print(f"No other modern members of the {mainLineage.upper()} lineage have submitted their DNA to AADR")
-    
+    print(f"No modern members of the {mainLineage.upper()} lineage have submitted their DNA to AADR")
+#output results in user-friendly format    
 else: 
-    print(f"{len(relatives)} other modern members of the {mainLineage.upper()} lineage have submitted their DNA to AADR, tracing their origins to the following countries:")
-    for country in groupCounts.keys():
-        print(f"{country}: {groupCounts[country]}")
+    print(f"{len(relatives)} other modern members of the {mainLineage.upper()} lineage have submitted their DNA to AADR, tracing their origins to ")
+    for index, country in enumerate(groupCounts.keys()):
+        if len(groupCounts.keys()) == 1:
+            print(f"{country} ({groupCounts[country]}.")
+        elif index < len(groupCounts.keys())-1 and len(groupCounts.keys()) > 2:
+            print(f"{country} ({groupCounts[country]}), ")
+        elif index < len(groupCounts.keys())-1:
+            print(f"{country} ({groupCounts[country]})")
+        elif index == len(groupCounts.keys())-1:
+            print(f"and {country} ({groupCounts[country]}).")
     
 
 
