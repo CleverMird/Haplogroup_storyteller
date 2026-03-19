@@ -7,6 +7,7 @@ A yaml file to create a conda environtment in which to run this program is inclu
 To create the conda environment:
 
 >conda env create -n haplogroupStoryteller --file Environments/environment.yml
+>
 >conda activate haplogroupStoryteller
 
 Note: replace 'Environments/environment.yml' with the appropriate path to the environment.yml file from your working directory
