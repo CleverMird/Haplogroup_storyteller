@@ -37,10 +37,14 @@ If the user wishes to use different sources for lineage divergence dates or to a
 * haplogroupStoryteller.py - the program file
 
 * Assets/ - a folder containing necessary files to run the program
-    -Ancient_samples.txt - a list of genetic IDs for the ancient DNA samples in the AADR metadata file
-    -Modern_samples.txt - a list of the genetic IDs for the modern DNA samples in the AADR metadata file
-    -lineageDates.txt - a list of estimated divergence dates for mtHaplogroup lineages, from Soares et al
-    -testData.xlsx - an excel file containing sample information for testing the script 
+
+  -Ancient_samples.txt - a list of genetic IDs for the ancient DNA samples in the AADR metadata file
+
+  -Modern_samples.txt - a list of the genetic IDs for the modern DNA samples in the AADR metadata file
+
+  -lineageDates.txt - a list of estimated divergence dates for mtHaplogroup lineages, from Soares et al
+
+  -testData.xlsx - an excel file containing sample information for testing the script 
 
 * Environments/ - a folder containing information for creating a conda environment to run this script
     -environment.yml - the environment parameter file
